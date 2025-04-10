@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>誕生日おめでとう！</title>
+    <style>
+        /* 基本スタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #555;
+            padding: 20px;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        /* 背景画像用スタイル */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/yumo.png'); /* フォルダ内の画像パスを指定 */
+            background-size: cover; /* 画面に合わせて画像をカバー */
+            background-position: center; /* 画像を中央に配置 */
+            z-index: -1;
+            opacity: 0.8; /* 透明度を調整（必要に応じて） */
+        }
+        
+        /* キーフレームアニメーションの削除（不要になったため） */
+        
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            position: relative;
+            max-width: 600px;
+            width: 100%;
+            perspective: 1000px;
+            margin-bottom: 100px; /* 下部に余白を追加して全体が見えるように */
+            z-index: 1;
+        }
+        
+        /* 封筒スタイル */
+        .envelope {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background-color: #fe8a7e;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.6s ease-in-out;
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .envelope.open {
+            transform: rotateX(180deg);
+        }
+        
+        .envelope-front, .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 5px;
+        }
+        
+        .envelope-front {
+            background-color: #fe8a7e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .envelope-back {
+            background-color: #fe9c94;
+            transform: rotateX(180deg);
+        }
+        
+        .flap {
+            position: absolute;
+            width: 100%;
+            height: 70px;
+            background-color: #fd7a6d;
+            top: 0;
+            z-index: 2;
+            transform-origin: top center;
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transition: transform 0.4s ease-out 0.6s;
+        }
+        
+        .envelope.open .flap {
+            transform: rotateX(180deg);
+            transition-delay: 0s;
+        }
+        
+        .envelope-seal {
+            width: 60px;
+            height: 60px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s ease;
+            padding: 5px;
+        }
+        
+        .envelope.open .envelope-seal {
+            opacity: 0;
+        }
+        
+        .click-message {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* 手紙スタイル */
+        .letter {
+            position: absolute;
+            width: 90%;
+            height: 0;
+            background-color: white;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            padding: 30px;
+            opacity: 0;
+            overflow: hidden;
+            transition: height 0.4s ease-out, opacity 0.4s ease-out, transform 0.6s ease-out;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .envelope.open + .letter {
+            height: 550px; /* 450pxから550pxに高さを増加 */
+            opacity: 1;
+            transform: translate(-50%, -100px);
+            transition-delay: 0.6s;
+            overflow-y: auto;
+            max-height: 80vh; /* 70vhから80vhに最大高さを増加 */
+        }
+        
+        .letter-content {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            transition-delay: 0.8s;
+        }
+        
+        .envelope.open + .letter .letter-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 1s;
+        }
+        
+        .letter-header {
+            margin-bottom: 20px;
+        }
+        
+        .letter-header h1 {
+            color: #fe8a7e;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .letter-header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .letter-body {
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        /* 切手スタイル */
+        .stamp-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            border: 3px solid #f0f0f0;
+            border-radius: 10px;
+            padding: 5px;
+            background: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stamp {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .stamp-image {
+            width: 90%;
+            height: 90%;
+            background-color: #fff;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .stamp-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+        
+        .stamp-border {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed white;
+            border-radius: 3px;
+            pointer-events: none;
+        }
+        
+        .letter-footer {
+            font-style: italic;
+            margin-top: 20px;
+        }
+        
+        /* レスポンシブ対応 */
+        @media (max-width: 600px) {
+            .envelope {
+                height: 300px;
+            }
+            
+            .letter {
+                width: 95%;
+            }
+            
+            .envelope.open + .letter {
+                height: 600px; /* 500pxから600pxに高さを増加 */
+                max-height: 80vh; /* 70vhから80vhに変更 */
+                transform: translate(-50%, -100px);
+            }
+            
+            .letter-header h1 {
+                font-size: 24px;
+            }
+            
+            .stamp-container {
+                width: 120px;
+                height: 120px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .envelope {
+                height: 250px;
+            }
+            
+            .letter-header h1 {
+                font-size: 20px;
+            }
+            
+            .stamp-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            body {
+                padding: 5px;
+            }
+            
+            .envelope.open + .letter {
+                transform: translate(-50%, -100px);
+                padding-bottom: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景画像用要素 -->
+    <div class="bg-image"></div>
+    
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="envelope">
+                <div class="flap"></div>
+                <div class="envelope-front">
+                    <div class="envelope-seal">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="45" height="45">
+                            <!-- ぐでたま風アイコン -->
+                            <ellipse cx="50" cy="55" rx="40" ry="30" fill="#FFEB3B" />
+                            <circle cx="50" cy="40" r="28" fill="#FFEB3B" />
+                            <!-- 黄身部分 -->
+                            <circle cx="50" cy="52" r="15" fill="#FFD600" />
+                            <!-- 目 -->
+                            <line x1="35" y1="50" x2="42" y2="50" stroke="#000" stroke-width="2" stroke-linecap="round" />
+                            <line x1="58" y1="50" x2="65" y2="50" stroke="#000" stroke-width="2" stroke-linecap="round" />
+                            <!-- 口 -->
+                            <path d="M45,60 Q50,62 55,60" stroke="#000" stroke-width="1.5" fill="none" />
+                            <!-- お尻のライン -->
+                            <path d="M30,70 Q50,76 70,70" stroke="#c0951c" stroke-width="1" fill="none" />
+                        </svg>
+                    </div>
+                    <div class="click-message">いつもありがとう！</div>
+                </div>
+                <div class="envelope-back"></div>
+            </div>
+            
+            <div class="letter">
+                <div class="letter-content">
+                    <div class="stamp-container" style="margin-top: 0; margin-bottom: 30px;">
+                        <div class="stamp">
+                            <div class="stamp-image">
+                                <img src="images/ami.png" alt="記念画像" style="max-width: 100%; max-height: 100%; border-radius: 3px;">
+                            </div>
+                            <div class="stamp-border"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="letter-header">
+                        <h1>お誕生日おめでとう！</h1>
+                        <p>今年もよろしくね〜</p>
+                    </div>
+                    
+                    <div class="letter-body">
+                        <p>誕生日おめでとう！</p>
+                        今回のお手紙はデジタル仕様だよ。<br>
+                        スマホでいつでも見れるけ〜
+                        </p>
+                        <p>
+                            えっほえっほえっほいつも美味しいご飯をありがとうって伝えなきゃ。
+                            えっほえっほえっほ今年もたくさんハグしてゆっくり過ごすって伝えなきゃ。
+                    　 <br>
+                           
+                 
+                        <p>
+                        今年はミナモアもできたけ、あみが好きなご飯たくさん食べよ〜
+                        封筒のシールはぐでたまだよ。<br>
+                        お散歩はいつ一緒にしてくれるの！！
+                    
+                    </p>
+                    </div>
+                    
+                    <div class="letter-footer">
+                        <p>ゆも</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelector('.envelope').addEventListener('click', function() {
+            this.classList.toggle('open');
+        });
+        
+        // 実際の使用時には、この関数を使用してPNG画像をセット
+        function setPngImage(imageUrl) {
+            document.querySelector('.stamp-image img').src = imageUrl;
+        }
+        
+        // 背景画像を設定する関数
+        function setBackgroundImage(imageUrl) {
+            document.querySelector('.bg-image').style.backgroundImage = `url('${imageUrl}')`;
+        }
+        
+        // 例: 特定の画像を設定する場合
+        // setBackgroundImage('images/yumo.png');
+    </script>
+</body>
+</html>
